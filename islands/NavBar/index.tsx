@@ -30,13 +30,22 @@ export default function NavBar() {
                         >
                             mini-webapp
                         </a>
-                        {isLoading ? (
-                            <div>Loading...</div>
-                        ) : profile ? (
-                            <div>Welcome, {profile.name}!</div>
-                        ) : (
-                            <div>Please sign in</div>
-                        )}
+                        {isLoading
+                            ? <div>Loading...</div>
+                            : profile
+                            ? (
+                                <div className="flex">
+                                    <div>Welcome, {profile.name}!</div>
+                                    <div>
+                                        <a href="signout">
+                                            <button class="btn btn-primary">
+                                                Signout
+                                            </button>
+                                        </a>
+                                    </div>
+                                </div>
+                            )
+                            : <div>Please sign in</div>}
                     </div>
                     <div className="flex-none lg:hidden">
                         <label
@@ -63,22 +72,6 @@ export default function NavBar() {
                     <div className="flex-none hidden lg:flex">
                         <ul className="menu menu-horizontal px-1 space-x-4 items-center">
                             <ThemeChanger />
-                            <li>
-                                <a href="/hehe_coba_lagi">click me !</a>
-                            </li>
-                            <li>
-                                <details>
-                                    <summary>Open me !</summary>
-                                    <ul className="p-2 bg-base-100 rounded-t-none">
-                                        <li>
-                                            <a href="/hmm">hmm</a>
-                                        </li>
-                                        <li>
-                                            <a href="/hmmmm">hmmmm</a>
-                                        </li>
-                                    </ul>
-                                </details>
-                            </li>
                         </ul>
                     </div>
                 </div>
@@ -91,22 +84,6 @@ export default function NavBar() {
                 >
                 </label>
                 <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content space-y-2">
-                    <li>
-                        <a href="/hehe_coba_lagi">Click me !</a>
-                    </li>
-                    <li>
-                        <details>
-                            <summary>Open me !</summary>
-                            <ul className="p-2 bg-base-100 rounded-t-none space-y-1">
-                                <li>
-                                    <a href="/hmm">hmm</a>
-                                </li>
-                                <li>
-                                    <a href="/hmmmm">hmmmm</a>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
                     <div className="ml-2 py-2">
                         <ThemeChanger />
                     </div>
