@@ -3,7 +3,7 @@ import type { Plugin } from "$fresh/server.ts";
 
 const { signIn, handleCallback, signOut, getSessionId } = createHelpers(
     createGoogleOAuthConfig({
-        redirectUri: "http://localhost:8000/callback",
+        redirectUri: "https://hisyam99-mini-webapp-fresh.deno.dev/callback",
         scope:
             "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
     }),
