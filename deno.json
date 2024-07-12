@@ -14,17 +14,19 @@
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.6.8/",
     "$std/": "https://deno.land/std@0.216.0/",
-    "@deno/kv-oauth": "jsr:@deno/kv-oauth@^0.11.0",
+    "@deno/kv-oauth": "https://github.com/denoland/deno_kv_oauth",
+    "@hisyam99/kv-oauth": "jsr:@hisyam99/kv-oauth@^0.12.0",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+    "daisyui": "npm:daisyui",
     "preact": "https://esm.sh/preact@10.19.6",
     "preact/": "https://esm.sh/preact@10.19.6/",
     "tailwindcss": "npm:tailwindcss@3.4.1",
+    "tailwindcss-animate": "npm:tailwindcss-animate",
     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
-    "tailwindcss-animate": "npm:tailwindcss-animate",
-    "daisyui": "npm:daisyui",
-    "theme-change": "npm:theme-change"
+    "theme-change": "npm:theme-change",
+    "@clerk/clerk-js": "npm:@clerk/clerk-js"
   },
   "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "preact" },
   "nodeModulesDir": true,
