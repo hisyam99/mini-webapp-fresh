@@ -1,4 +1,4 @@
-import { createGoogleOAuthConfig, createHelpers } from "jsr:@deno/kv-oauth";
+import { createGoogleOAuthConfig, createHelpers } from "@deno/kv-oauth";
 import type { Plugin } from "$fresh/server.ts";
 
 const { signIn, handleCallback, signOut, getSessionId } = createHelpers(
