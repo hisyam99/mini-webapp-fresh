@@ -24,7 +24,9 @@
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
     "tailwindcss-animate": "npm:tailwindcss-animate",
     "daisyui": "npm:daisyui",
-    "theme-change": "npm:theme-change"
+    "theme-change": "npm:theme-change",
+    "zod": "https://esm.sh/zod",
+    "axios-web": "https://esm.sh/axios@1.3.2?target=es2022"
   },
   "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "preact" },
   "nodeModulesDir": true,

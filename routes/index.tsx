@@ -18,9 +18,6 @@ export default function Home() {
         </p>
       </div>
       <div className="w-full flex justify-center">
-        <ThemeChanger />
-      </div>
-      <div className="w-full flex justify-center">
         <a href="signin">
           <button class="btn btn-primary">Login</button>
         </a>

@@ -1,9 +1,14 @@
 import { createGoogleOAuthConfig, createHelpers } from "@deno/kv-oauth";
 import type { Plugin } from "$fresh/server.ts";
+import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
+
+const env = await load();
+
+
 
 const { signIn, handleCallback, signOut, getSessionId } = createHelpers(
     createGoogleOAuthConfig({
-        redirectUri: "https://hisyam99-mini-webapp-fresh.deno.dev/callback",
+        redirectUri: `${env.REDIRECT_URI}/callback`,
         scope:
             "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
     }),
@@ -29,7 +34,7 @@ async function setUserProfile(sessionId: string, profile: any) {
     await kv.set(["userProfiles", sessionId], profile);
 }
 
-async function getUserProfileFromSession(sessionId: string) {
+export async function getUserProfileFromSession(sessionId: string) {
     const kv = await Deno.openKv();
     const result = await kv.get(["userProfiles", sessionId]);
     return result.value as { name?: string } | null;
