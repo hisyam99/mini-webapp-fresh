@@ -1,5 +1,5 @@
 import { ThemeChanger } from "../../islands/ThemeChanger.tsx";
-import LoginModal from "../LoginModal.tsx"; // Import komponen LoginModal
+import LoginModal from "../LoginModal.tsx"; // Import
 import { useEffect, useState } from "preact/hooks";
 
 interface UserProfile {
