@@ -46,7 +46,7 @@ export default function NavBar() {
                                 </label>
                                 <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                                     <li><a href="/profile">Profile</a></li>
-                                    <li><a href="/signout">Logout</a></li>
+                                    <li><a href="/signout?success_url=/">Logout</a></li>
                                 </ul>
                             </div>
                         ) : (
