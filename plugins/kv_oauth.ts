@@ -2,13 +2,13 @@ import { createGoogleOAuthConfig, createHelpers } from "@deno/kv-oauth";
 import type { Plugin } from "$fresh/server.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
-const env = await load();
+const _env = await load();
 
 
 
 const { signIn, handleCallback, signOut, getSessionId } = createHelpers(
     createGoogleOAuthConfig({
-        redirectUri: `${env.REDIRECT_URI}/callback`,
+        redirectUri: `${Deno.env.get("REDIRECT_URI")}/callback`,
         scope:
             "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
     }),
