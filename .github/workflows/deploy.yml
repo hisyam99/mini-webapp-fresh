@@ -25,6 +25,7 @@ jobs:
 
       - name: Build step
         env: 
+            REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
             GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: "deno task build"
