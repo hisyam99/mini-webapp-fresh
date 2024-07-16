@@ -8,7 +8,7 @@ export const handler = async (
 ): Promise<Response> => {
   const sessionId = await getSessionId(req);
   if (sessionId === undefined) {
-    return Response.redirect(`${new URL(req.url).origin}/signin?success_url=/dashboard`, 302);
+    return Response.redirect(`${new URL(req.url).origin}/login`, 302);
   }
 
   const listId = encodeBase58(crypto.getRandomValues(new Uint8Array(8)));

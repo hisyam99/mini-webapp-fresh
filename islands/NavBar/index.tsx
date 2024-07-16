@@ -1,4 +1,5 @@
 import { ThemeChanger } from "../../islands/ThemeChanger.tsx";
+import LoginModal from "../LoginModal.tsx"; // Import komponen LoginModal
 import { useEffect, useState } from "preact/hooks";
 
 interface UserProfile {
@@ -33,25 +34,24 @@ export default function NavBar() {
                         <a href="/" className="btn btn-ghost normal-case text-xl">
                             mini-webapp
                         </a>
-                        
                     </div>
                     {isLoading ? (
-                            <div>Loading...</div>
-                        ) : profile ? (
-                            <div className="dropdown dropdown-end">
-                                <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-                                    <div className="w-10 rounded-full">
-                                        <img src={profile.picture} alt={profile.name} />
-                                    </div>
-                                </label>
-                                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                                    <li><a href="/profile">Profile</a></li>
-                                    <li><a href="/signout?success_url=/">Logout</a></li>
-                                </ul>
-                            </div>
-                        ) : (
-                            <a href="/signin" className="btn btn-primary">Sign In</a>
-                        )}
+                        <div>Loading...</div>
+                    ) : profile ? (
+                        <div className="dropdown dropdown-end">
+                            <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+                                <div className="w-10 rounded-full">
+                                    <img src={profile.picture} alt={profile.name} />
+                                </div>
+                            </label>
+                            <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li><a href="/profile">Profile</a></li>
+                                <li><a href="/signout?success_url=/">Logout</a></li>
+                            </ul>
+                        </div>
+                    ) : (
+                        <LoginModal />
+                    )}
                     <div className="flex-none lg:hidden">
                         <label htmlFor="my-drawer-4" className="btn btn-square btn-ghost" aria-label="Open Menu">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

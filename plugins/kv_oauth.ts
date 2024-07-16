@@ -1,26 +1,43 @@
-import { createGoogleOAuthConfig, createHelpers } from "@deno/kv-oauth";
+import {
+    createFacebookOAuthConfig,
+    createGoogleOAuthConfig,
+    createHelpers,
+} from "@deno/kv-oauth";
 import type { Plugin } from "$fresh/server.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 const _env = await load();
 
-const { signIn, handleCallback, signOut, getSessionId } = createHelpers(
-    createGoogleOAuthConfig({
-        redirectUri: `${Deno.env.get("REDIRECT_URI")}/callback`,
-        scope:
-            "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
-    }),
-);
+const googleOAuthConfig = createGoogleOAuthConfig({
+    redirectUri: `${Deno.env.get("REDIRECT_URI")}/google/callback`,
+    scope:
+        "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+});
 
-async function getUserProfile(accessToken: string) {
-    const response = await fetch(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
+const facebookOAuthConfig = createFacebookOAuthConfig({
+    redirectUri: `${Deno.env.get("REDIRECT_URI")}/facebook/callback`,
+    scope: "public_profile,email",
+});
+
+const googleHelpers = createHelpers(googleOAuthConfig);
+const facebookHelpers = createHelpers(facebookOAuthConfig);
+
+async function getUserProfile(
+    provider: "google" | "facebook",
+    accessToken: string,
+) {
+    let url;
+    if (provider === "google") {
+        url = "https://www.googleapis.com/oauth2/v2/userinfo";
+    } else {
+        url = "https://graph.facebook.com/me?fields=id,name,email";
+    }
+
+    const response = await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
         },
-    );
+    });
     if (!response.ok) {
         throw new Error("Failed to fetch user profile");
     }
@@ -42,19 +59,42 @@ export default {
     name: "kv-oauth",
     routes: [
         {
-            path: "/signin",
+            path: "/signin/google",
             async handler(req) {
-                return await signIn(req);
+                return await googleHelpers.signIn(req);
             },
         },
         {
-            path: "/callback",
+            path: "/signin/facebook",
             async handler(req) {
-                const { response, sessionId, tokens } = await handleCallback(
-                    req,
-                );
+                return await facebookHelpers.signIn(req);
+            },
+        },
+        {
+            path: "/google/callback",
+            async handler(req) {
+                const { response, sessionId, tokens } = await googleHelpers
+                    .handleCallback(req);
                 if (tokens.accessToken && sessionId) {
-                    const profile = await getUserProfile(tokens.accessToken);
+                    const profile = await getUserProfile(
+                        "google",
+                        tokens.accessToken,
+                    );
+                    await setUserProfile(sessionId, profile);
+                }
+                return response;
+            },
+        },
+        {
+            path: "/facebook/callback",
+            async handler(req) {
+                const { response, sessionId, tokens } = await facebookHelpers
+                    .handleCallback(req);
+                if (tokens.accessToken && sessionId) {
+                    const profile = await getUserProfile(
+                        "facebook",
+                        tokens.accessToken,
+                    );
                     await setUserProfile(sessionId, profile);
                 }
                 return response;
@@ -63,13 +103,14 @@ export default {
         {
             path: "/signout",
             async handler(req) {
-                return await signOut(req);
+                return await googleHelpers.signOut(req);
             },
         },
         {
             path: "/protected",
             async handler(req) {
-                const sessionId = await getSessionId(req);
+                const sessionId = await googleHelpers.getSessionId(req) ||
+                    await facebookHelpers.getSessionId(req);
                 if (sessionId === undefined) {
                     return new Response("Unauthorized", { status: 401 });
                 }
@@ -85,7 +126,8 @@ export default {
         {
             path: "/api/profile",
             async handler(req) {
-                const sessionId = await getSessionId(req);
+                const sessionId = await googleHelpers.getSessionId(req) ||
+                    await facebookHelpers.getSessionId(req);
                 if (sessionId === undefined) {
                     return new Response("Unauthorized", { status: 401 });
                 }
