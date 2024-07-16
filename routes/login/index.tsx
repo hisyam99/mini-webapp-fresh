@@ -1,6 +1,6 @@
 export default function LoginPage() {
     return (
-        <div className="p-24 flex items-center justify-center">
+        <div className="py-24 flex items-center justify-center">
             <div className="card shadow-lg w-full max-w-lg">
                 <div className="card-body">
                     <h2 className="text-2xl font-bold mb-4">Sign In</h2>
