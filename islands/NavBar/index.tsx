@@ -2,7 +2,13 @@ import { ThemeChanger } from "../../islands/ThemeChanger.tsx";
 import { useEffect, useState } from "preact/hooks";
 
 interface UserProfile {
+    id: string;
+    email: string;
+    verified_email: boolean;
     name: string;
+    given_name: string;
+    family_name: string;
+    picture: string;
 }
 
 export default function NavBar() {
@@ -11,7 +17,7 @@ export default function NavBar() {
 
     useEffect(() => {
         setIsLoading(true);
-        fetch("/profile")
+        fetch("/api/profile")
             .then((res) => res.json())
             .then((data: UserProfile) => setProfile(data))
             .catch((err) => console.error("Error fetching profile:", err))
@@ -22,50 +28,34 @@ export default function NavBar() {
         <div className="drawer drawer-end z-10">
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
-                <div className="navbar bg-base-100">
+                <div className="navbar bg-base-100 shadow-lg">
                     <div className="flex-1">
-                        <a
-                            href="/"
-                            className="btn btn-ghost normal-case text-xl"
-                        >
+                        <a href="/" className="btn btn-ghost normal-case text-xl">
                             mini-webapp
                         </a>
-                        {isLoading
-                            ? <div>Loading...</div>
-                            : profile
-                            ? (
-                                <div className="flex">
-                                    <div>Welcome, {profile.name}!</div>
-                                    <div>
-                                        <a href="signout">
-                                            <button class="btn btn-primary">
-                                                Signout
-                                            </button>
-                                        </a>
-                                    </div>
-                                </div>
-                            )
-                            : <div>Please sign in</div>}
+                        
                     </div>
+                    {isLoading ? (
+                            <div>Loading...</div>
+                        ) : profile ? (
+                            <div className="dropdown dropdown-end">
+                                <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+                                    <div className="w-10 rounded-full">
+                                        <img src={profile.picture} alt={profile.name} />
+                                    </div>
+                                </label>
+                                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                                    <li><a href="/profile">Profile</a></li>
+                                    <li><a href="/signout">Logout</a></li>
+                                </ul>
+                            </div>
+                        ) : (
+                            <a href="/signin" className="btn btn-primary">Sign In</a>
+                        )}
                     <div className="flex-none lg:hidden">
-                        <label
-                            htmlFor="my-drawer-4"
-                            className="btn btn-square btn-ghost"
-                            aria-label="Open Menu"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M4 6h16M4 12h16m-7 6h7"
-                                />
+                        <label htmlFor="my-drawer-4" className="btn btn-square btn-ghost" aria-label="Open Menu">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
                             </svg>
                         </label>
                     </div>
@@ -77,12 +67,7 @@ export default function NavBar() {
                 </div>
             </div>
             <div className="drawer-side">
-                <label
-                    htmlFor="my-drawer-4"
-                    aria-label="close sidebar"
-                    className="drawer-overlay"
-                >
-                </label>
+                <label htmlFor="my-drawer-4" aria-label="Close Sidebar" className="drawer-overlay"></label>
                 <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content space-y-2">
                     <div className="ml-2 py-2">
                         <ThemeChanger />

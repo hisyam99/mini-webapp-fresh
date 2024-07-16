@@ -15,7 +15,7 @@ export const handler: Handlers = {
   GET: async (req, ctx) => {
     const sessionId = await getSessionId(req);
     if (sessionId === undefined) {
-      return new Response("Unauthorized", { status: 401 });
+      return Response.redirect(`${new URL(req.url).origin}/signin`, 302);
     }
 
     const profile = await getUserProfileFromSession(sessionId);
@@ -100,7 +100,7 @@ export default function Home(
   return (
     <>
       <Head>
-        <title>Todo List</title>
+        <title>Daftar Tugas</title>
       </Head>
       <div class="p-4 mx-auto max-w-screen-md">
         <TodoListView initialData={data} latency={latency} />

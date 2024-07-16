@@ -4,8 +4,6 @@ import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 const _env = await load();
 
-
-
 const { signIn, handleCallback, signOut, getSessionId } = createHelpers(
     createGoogleOAuthConfig({
         redirectUri: `${Deno.env.get("REDIRECT_URI")}/callback`,
@@ -29,7 +27,7 @@ async function getUserProfile(accessToken: string) {
     return await response.json();
 }
 
-async function setUserProfile(sessionId: string, profile: any) {
+async function setUserProfile(sessionId: string, profile: string) {
     const kv = await Deno.openKv();
     await kv.set(["userProfiles", sessionId], profile);
 }
@@ -85,7 +83,7 @@ export default {
             },
         },
         {
-            path: "/profile",
+            path: "/api/profile",
             async handler(req) {
                 const sessionId = await getSessionId(req);
                 if (sessionId === undefined) {

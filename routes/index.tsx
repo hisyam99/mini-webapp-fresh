@@ -9,15 +9,19 @@ export default function Home() {
           height="128"
           alt="the Fresh logo: a sliced lemon dripping with juice"
         />
-        <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
-        <p class="my-4">
-          Try updating this message in the
-          <code class="mx-2">./routes/index.tsx</code> file, and refresh.
-        </p>
+        <h1 class="text-4xl font-bold">Aplikasi CRUD Sederhana</h1>
+        <a class="my-4" href="https://fresh.deno.dev">
+          <img
+            width="197"
+            height="37"
+            src="https://fresh.deno.dev/fresh-badge.svg"
+            alt="Made with Fresh"
+          />
+        </a>
       </div>
       <div className="w-full flex justify-center">
-        <a href="signin">
-          <button class="btn btn-primary">Login</button>
+        <a href="dashboard">
+          <button class="btn btn-primary">Get Started</button>
         </a>
       </div>
     </div>
