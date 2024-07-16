@@ -6,7 +6,7 @@ export default function LoginPage() {
                     <h2 className="text-2xl font-bold mb-4">Sign In</h2>
                     <p className="text-red-500 mb-4">Oops! You need to sign in first.</p>
                     <div className="flex flex-col space-y-4">
-                        <a href="/signin/google" className="btn">
+                        <a href="/signin/google?success_url=/dashboard" className="btn">
                             <img
                                 width="20"
                                 height="20"
@@ -15,7 +15,7 @@ export default function LoginPage() {
                             />
                             Sign In with Google
                         </a>
-                        <a href="/signin/facebook" className="btn">
+                        <a href="/signin/facebook?success_url=/dashboard" className="btn">
                         <img
                                 width="20"
                                 height="20"
