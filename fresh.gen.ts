@@ -5,11 +5,17 @@
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $api_joke from "./routes/api/joke.ts";
+import * as $dashboard_listId_ from "./routes/dashboard/[listId].tsx";
+import * as $dashboard_index from "./routes/dashboard/index.tsx";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
-import * as $Counter from "./islands/Counter.tsx";
+import * as $login_index from "./routes/login/index.tsx";
+import * as $profile_index from "./routes/profile/index.tsx";
+import * as $LoginModal from "./islands/LoginModal.tsx";
 import * as $NavBar_index from "./islands/NavBar/index.tsx";
+import * as $Profile from "./islands/Profile.tsx";
 import * as $ThemeChanger from "./islands/ThemeChanger.tsx";
+import * as $TodoListView from "./islands/TodoListView.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -17,13 +23,19 @@ const manifest = {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
     "./routes/api/joke.ts": $api_joke,
+    "./routes/dashboard/[listId].tsx": $dashboard_listId_,
+    "./routes/dashboard/index.tsx": $dashboard_index,
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
+    "./routes/login/index.tsx": $login_index,
+    "./routes/profile/index.tsx": $profile_index,
   },
   islands: {
-    "./islands/Counter.tsx": $Counter,
+    "./islands/LoginModal.tsx": $LoginModal,
     "./islands/NavBar/index.tsx": $NavBar_index,
+    "./islands/Profile.tsx": $Profile,
     "./islands/ThemeChanger.tsx": $ThemeChanger,
+    "./islands/TodoListView.tsx": $TodoListView,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
