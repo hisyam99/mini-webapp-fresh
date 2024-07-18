@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { TodoList, TodoListItem } from "../shared/api.ts";
-import axios from "axios-web";
 
 interface LocalMutation {
   text: string | null;
@@ -8,70 +7,61 @@ interface LocalMutation {
 }
 
 export default function TodoListView(
-  props: { initialData: TodoList; latency: number },
+  { initialData, latency }: { initialData: TodoList; latency: number },
 ) {
-  const [data, setData] = useState(props.initialData);
+  const [data, setData] = useState(initialData);
   const [dirty, setDirty] = useState(false);
   const localMutations = useRef(new Map<string, LocalMutation>());
   const [hasLocalMutations, setHasLocalMutations] = useState(false);
   const busy = hasLocalMutations || dirty;
   const [adding, setAdding] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const [copyStatus, setCopyStatus] = useState("Copy");
+  const [currentUrl, setCurrentUrl] = useState("");
 
   useEffect(() => {
-    let es = new EventSource(window.location.href);
-
-    es.addEventListener("message", (e) => {
-      const newData: TodoList = JSON.parse(e.data);
-      setData(newData);
-      setDirty(false);
-      setAdding(false);
-    });
-
-    es.addEventListener("error", async () => {
-      es.close();
-      const backoff = 10000 + Math.random() * 5000;
-      await new Promise((resolve) => setTimeout(resolve, backoff));
-      es = new EventSource(window.location.href);
-    });
+    setCurrentUrl(window.location.href);
   }, []);
 
   useEffect(() => {
-    (async () => {
-      while (1) {
-        const mutations = Array.from(localMutations.current);
-        localMutations.current = new Map();
-        setHasLocalMutations(false);
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl =
+      `${wsProtocol}//${window.location.host}${window.location.pathname}`;
+    const ws = new WebSocket(wsUrl);
 
-        if (mutations.length) {
-          setDirty(true);
-          const chunkSize = 10;
-          for (let i = 0; i < mutations.length; i += chunkSize) {
-            const chunk = mutations.slice(i, i + chunkSize).map((
-              [id, mut],
-            ) => ({
-              id,
-              text: mut.text,
-              completed: mut.completed,
-            }));
-            while (true) {
-              try {
-                await axios.post(window.location.href, chunk);
-                break;
-              } catch {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-              }
-            }
-          }
-        }
+    ws.onopen = () => console.log("WebSocket connected");
+    ws.onmessage = (event) => {
+      const newData: TodoList = JSON.parse(event.data);
+      setData(newData);
+      setDirty(false);
+      setAdding(false);
+    };
+    ws.onerror = (error) => console.error("WebSocket error:", error);
+    ws.onclose = () => console.log("WebSocket closed");
 
-        await new Promise((resolve) =>
-          setTimeout(
-            () => requestAnimationFrame(resolve),
-            1000,
-          )
-        );
+    wsRef.current = ws;
+
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const mutations = Array.from(localMutations.current);
+      localMutations.current.clear();
+      setHasLocalMutations(false);
+
+      if (mutations.length && wsRef.current?.readyState === WebSocket.OPEN) {
+        setDirty(true);
+        const message = JSON.stringify(mutations.map(([id, mut]) => ({
+          id,
+          text: mut.text,
+          completed: mut.completed,
+        })));
+        wsRef.current.send(message);
       }
-    })();
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const addTodoInput = useRef<HTMLInputElement>(null);
@@ -81,24 +71,25 @@ export default function TodoListView(
     addTodoInput.current!.value = "";
 
     const id = generateItemId();
-    localMutations.current.set(id, {
-      text: value,
-      completed: false,
-    });
+    localMutations.current.set(id, { text: value, completed: false });
     setHasLocalMutations(true);
     setAdding(true);
   }, []);
 
   const saveTodo = useCallback(
     (item: TodoListItem, text: string | null, completed: boolean) => {
-      localMutations.current.set(item.id!, {
-        text,
-        completed,
-      });
+      localMutations.current.set(item.id!, { text, completed });
       setHasLocalMutations(true);
     },
     [],
   );
+
+  const copyLink = useCallback(() => {
+    navigator.clipboard.writeText(currentUrl).then(() => {
+      setCopyStatus("Copied!");
+      setTimeout(() => setCopyStatus("Copy"), 2000);
+    });
+  }, [currentUrl]);
 
   return (
     <div className="container mx-auto p-4 max-w-xl">
@@ -112,8 +103,21 @@ export default function TodoListView(
               {busy ? "Syncing" : "Synced"}
             </div>
           </div>
+          <div className="form-control">
+            <div className="join space-x-2">
+              <input
+                type="text"
+                value={currentUrl}
+                className="input input-bordered w-full"
+                readOnly
+              />
+              <button className="btn" onClick={copyLink}>
+                {copyStatus}
+              </button>
+            </div>
+          </div>
           <p className="text-sm opacity-50">
-            Bagikan halaman ini untuk berkolaborasi dengan orang lain.
+            Bagikan link ini untuk berkolaborasi dengan orang lain.
           </p>
           <div className="form-control">
             <div className="input-group">
@@ -143,7 +147,7 @@ export default function TodoListView(
             ))}
           </ul>
           <div className="text-sm opacity-50 mt-4">
-            Waktu load: {props.latency}ms
+            Waktu load: {latency}ms
           </div>
         </div>
       </div>
@@ -167,24 +171,24 @@ function TodoItem(
     setBusy(true);
     save(item, input.current.value, item.completed);
     setEditing(false);
-  }, [item]);
+  }, [item, save]);
 
   const cancelEdit = useCallback(() => {
     if (!input.current) return;
     setEditing(false);
     input.current.value = item.text;
-  }, []);
+  }, [item]);
 
   const doDelete = useCallback(() => {
     setBusy(true);
     save(item, null, item.completed);
     setShowDeleteModal(false);
-  }, [item]);
+  }, [item, save]);
 
   const doSaveCompleted = useCallback((completed: boolean) => {
     setBusy(true);
     save(item, item.text, completed);
-  }, [item]);
+  }, [item, save]);
 
   return (
     <>

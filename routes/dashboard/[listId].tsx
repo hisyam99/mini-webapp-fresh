@@ -1,71 +1,71 @@
 import { Head } from "$fresh/runtime.ts";
 import { Handlers } from "$fresh/server.ts";
 import TodoListView from "../../islands/TodoListView.tsx";
-import {
-  db,
-  inputSchema,
-  loadList,
-  writeItems,
-} from "../../services/database.ts";
+import { db, loadList, writeItems } from "../../services/database.ts";
 import { TodoList } from "../../shared/api.ts";
 import { getSessionId } from "@deno/kv-oauth";
 import { getUserProfileFromSession } from "../../plugins/kv_oauth.ts";
 
+// Definisi handler untuk menangani permintaan GET
 export const handler: Handlers = {
   GET: async (req, ctx) => {
+    // Mendapatkan sessionId dari request
     const sessionId = await getSessionId(req);
     if (sessionId === undefined) {
+      // Redirect ke halaman signin jika sessionId tidak ditemukan
       return Response.redirect(`${new URL(req.url).origin}/signin`, 302);
     }
 
+    // Mendapatkan profil pengguna dari session
     const profile = await getUserProfileFromSession(sessionId);
     if (!profile) {
+      // Mengembalikan respons 404 jika profil tidak ditemukan
       return new Response("Profile not found", { status: 404 });
     }
 
     const listId = ctx.params.listId;
-    const accept = req.headers.get("accept");
     const url = new URL(req.url);
 
-    if (accept === "text/event-stream") {
-      const stream = db.watch([["list_updated", listId]]).getReader();
-      const body = new ReadableStream({
-        async start(controller) {
-          console.log(
-            `Opened stream for list ${listId} remote ${
-              JSON.stringify(ctx.remoteAddr)
-            }`,
-          );
-          while (true) {
-            try {
-              if ((await stream.read()).done) {
-                return;
-              }
+    // Handler untuk WebSocket
+    if (req.headers.get("upgrade") === "websocket") {
+      const { socket, response } = Deno.upgradeWebSocket(req);
 
-              const data = await loadList(listId, "strong");
-              const chunk = `data: ${JSON.stringify(data)}\n\n`;
-              controller.enqueue(new TextEncoder().encode(chunk));
-            } catch (e) {
-              console.error(`Error refreshing list ${listId}`, e);
-            }
+      socket.onopen = () => {
+        console.log(`WebSocket opened for list ${listId}`);
+      };
+
+      socket.onmessage = async (event) => {
+        try {
+          const mutations = JSON.parse(event.data);
+          await writeItems(listId, mutations);
+          const updatedData = await loadList(listId, "strong");
+          socket.send(JSON.stringify(updatedData));
+        } catch (error) {
+          console.error(`Error processing message for list ${listId}:`, error);
+        }
+      };
+
+      socket.onclose = () => {
+        console.log(`WebSocket closed for list ${listId}`);
+      };
+
+      const watcher = db.watch([["list_updated", listId]]);
+
+      (async () => {
+        for await (const _change of watcher) {
+          try {
+            const updatedData = await loadList(listId, "strong");
+            socket.send(JSON.stringify(updatedData));
+          } catch (error) {
+            console.error(`Error sending update for list ${listId}:`, error);
           }
-        },
-        cancel() {
-          stream.cancel();
-          console.log(
-            `Closed stream for list ${listId} remote ${
-              JSON.stringify(ctx.remoteAddr)
-            }`,
-          );
-        },
-      });
-      return new Response(body, {
-        headers: {
-          "content-type": "text/event-stream",
-        },
-      });
+        }
+      })();
+
+      return response;
     }
 
+    // Handler untuk permintaan GET biasa
     const startTime = Date.now();
     const data = await loadList(
       listId,
@@ -75,22 +75,6 @@ export const handler: Handlers = {
     const res = await ctx.render({ data, latency: endTime - startTime });
     res.headers.set("x-list-load-time", "" + (endTime - startTime));
     return res;
-  },
-  POST: async (req, ctx) => {
-    const sessionId = await getSessionId(req);
-    if (sessionId === undefined) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
-    const profile = await getUserProfileFromSession(sessionId);
-    if (!profile) {
-      return new Response("Profile not found", { status: 404 });
-    }
-
-    const listId = ctx.params.listId;
-    const body = inputSchema.parse(await req.json());
-    await writeItems(listId, body);
-    return Response.json({ ok: true });
   },
 };
 

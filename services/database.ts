@@ -1,14 +1,20 @@
 import { TodoList, TodoListItem } from "../shared/api.ts";
 import { z } from "zod";
 
+// Membuka koneksi ke database
 export const db = await Deno.openKv();
+
+// Mendefinisikan skema input menggunakan zod
 export const inputSchema = z.array(z.object({
   id: z.string(),
   text: z.string().nullable(),
   completed: z.boolean(),
 }));
+
+// Mendefinisikan tipe dari skema input
 export type InputSchema = z.infer<typeof inputSchema>;
 
+// Fungsi untuk memuat daftar to-do berdasarkan ID dan konsistensi
 export async function loadList(
   id: string,
   consistency: "strong" | "eventual",
@@ -17,10 +23,13 @@ export async function loadList(
     items: [],
   };
 
+  // Mendapatkan iterator dari database
   const it = db.list({ prefix: ["list", id] }, {
     reverse: true,
     consistency,
   });
+
+  // Mengiterasi dan menambahkan item ke daftar keluaran
   for await (const entry of it) {
     const item = entry.value as TodoListItem;
     item.id = entry.key[entry.key.length - 1] as string;
@@ -31,17 +40,18 @@ export async function loadList(
   return out;
 }
 
+// Fungsi untuk menulis item ke dalam database
 export async function writeItems(
   listId: string,
   inputs: InputSchema,
 ): Promise<void> {
   const currentEntries = await db.getMany(
-    inputs.map((input) => ["list", listId, input.id]),
+    inputs.map((input: InputSchema[number]) => ["list", listId, input.id]),
   );
 
   const op = db.atomic();
 
-  inputs.forEach((input, i) => {
+  inputs.forEach((input: InputSchema[number], i: number) => {
     if (input.text === null) {
       op.delete(["list", listId, input.id]);
     } else {
@@ -58,6 +68,7 @@ export async function writeItems(
       op.set(["list", listId, input.id], item);
     }
   });
+
   op.set(["list_updated", listId], true);
   await op.commit();
 }
