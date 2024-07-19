@@ -1,12 +1,15 @@
 import { useEffect, useState } from "preact/hooks";
 import { themeChange } from "theme-change";
 
+// Interface untuk mendefinisikan opsi tema
 interface ThemeOption {
-    value: string;
-    label: string;
+    value: string; // Nilai tema
+    label: string; // Label tema
 }
 
+// Komponen untuk mengganti tema
 export function ThemeChanger() {
+    // Daftar opsi tema yang tersedia
     const themeValues: ThemeOption[] = [
         { value: "auto", label: "System Theme" },
         { value: "light", label: "Light" },
@@ -43,18 +46,21 @@ export function ThemeChanger() {
         { value: "sunset", label: "Sunset" },
     ];
 
+    // Mengambil tema dari localStorage atau default ke "auto"
     const themeFromLocalStorage = localStorage.getItem("theme") || "auto";
     const [theme, setTheme] = useState<string>(themeFromLocalStorage);
 
+    // Fungsi untuk menangani perubahan tema
     const handleThemeChange = (newTheme: string): void => {
-        setTheme(newTheme);
-        localStorage.setItem("theme", newTheme);
+        setTheme(newTheme); // Mengubah state tema
+        localStorage.setItem("theme", newTheme); // Menyimpan tema yang dipilih ke localStorage
     };
 
+    // useEffect untuk menerapkan tema ke elemen HTML
     useEffect(() => {
-        themeChange(false);
-        document.documentElement.setAttribute("data-theme", theme);
-    }, [theme]);
+        themeChange(false); // Menginisialisasi tema dengan plugin theme-change
+        document.documentElement.setAttribute("data-theme", theme); // Mengatur atribut data-theme pada elemen root
+    }, [theme]); // Efek ini dijalankan setiap kali state tema berubah
 
     return (
         <div class="dropdown dropdown-end dropdown-bottom">
@@ -86,8 +92,8 @@ export function ThemeChanger() {
                             aria-label={themeOption.label}
                             value={themeOption.value}
                             onChange={() =>
-                                handleThemeChange(themeOption.value)}
-                            checked={theme === themeOption.value}
+                                handleThemeChange(themeOption.value)} // Mengubah tema saat radio button dipilih
+                            checked={theme === themeOption.value} // Memeriksa apakah tema saat ini sesuai dengan nilai radio button
                         />
                     </li>
                 ))}

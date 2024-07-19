@@ -6,23 +6,26 @@ interface LocalMutation {
   completed: boolean;
 }
 
+// Komponen utama untuk menampilkan daftar tugas
 export default function TodoListView(
   { initialData, latency }: { initialData: TodoList; latency: number },
 ) {
-  const [data, setData] = useState(initialData);
-  const [dirty, setDirty] = useState(false);
-  const localMutations = useRef(new Map<string, LocalMutation>());
-  const [hasLocalMutations, setHasLocalMutations] = useState(false);
-  const busy = hasLocalMutations || dirty;
-  const [adding, setAdding] = useState(false);
-  const wsRef = useRef<WebSocket | null>(null);
-  const [copyStatus, setCopyStatus] = useState("Copy");
-  const [currentUrl, setCurrentUrl] = useState("");
+  const [data, setData] = useState(initialData); // State untuk data daftar tugas
+  const [dirty, setDirty] = useState(false); // State untuk status sinkronisasi data
+  const localMutations = useRef(new Map<string, LocalMutation>()); // Penyimpanan sementara untuk perubahan lokal
+  const [hasLocalMutations, setHasLocalMutations] = useState(false); // State untuk status perubahan lokal
+  const busy = hasLocalMutations || dirty; // Status apakah sedang sibuk (sinkronisasi atau ada perubahan lokal)
+  const [adding, setAdding] = useState(false); // State untuk status penambahan item baru
+  const wsRef = useRef<WebSocket | null>(null); // Referensi ke WebSocket
+  const [copyStatus, setCopyStatus] = useState("Copy"); // State untuk status tombol salin
+  const [currentUrl, setCurrentUrl] = useState(""); // State untuk URL saat ini
 
+  // Mengatur URL saat ini ketika komponen di-mount
   useEffect(() => {
     setCurrentUrl(window.location.href);
   }, []);
 
+  // Menginisialisasi WebSocket ketika komponen di-mount
   useEffect(() => {
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl =
@@ -44,6 +47,7 @@ export default function TodoListView(
     return () => ws.close();
   }, []);
 
+  // Mengirim perubahan lokal ke server setiap detik
   useEffect(() => {
     const interval = setInterval(() => {
       const mutations = Array.from(localMutations.current);
@@ -64,6 +68,7 @@ export default function TodoListView(
     return () => clearInterval(interval);
   }, []);
 
+  // Fungsi untuk menambahkan item baru ke daftar tugas
   const addTodoInput = useRef<HTMLInputElement>(null);
   const addTodo = useCallback(() => {
     const value = addTodoInput.current!.value;
@@ -76,6 +81,7 @@ export default function TodoListView(
     setAdding(true);
   }, []);
 
+  // Fungsi untuk menyimpan perubahan pada item
   const saveTodo = useCallback(
     (item: TodoListItem, text: string | null, completed: boolean) => {
       localMutations.current.set(item.id!, { text, completed });
@@ -84,6 +90,7 @@ export default function TodoListView(
     [],
   );
 
+  // Fungsi untuk menyalin link URL
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(currentUrl).then(() => {
       setCopyStatus("Copied!");
@@ -155,6 +162,7 @@ export default function TodoListView(
   );
 }
 
+// Komponen untuk menampilkan item dalam daftar tugas
 function TodoItem(
   { item, save }: {
     item: TodoListItem;
@@ -162,10 +170,11 @@ function TodoItem(
   },
 ) {
   const input = useRef<HTMLInputElement>(null);
-  const [editing, setEditing] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editing, setEditing] = useState(false); // State untuk status pengeditan item
+  const [busy, setBusy] = useState(false); // State untuk status kesibukan (sedang menyimpan)
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // State untuk menampilkan modal konfirmasi penghapusan
 
+  // Fungsi untuk menyimpan perubahan item
   const doSave = useCallback(() => {
     if (!input.current) return;
     setBusy(true);
@@ -173,18 +182,21 @@ function TodoItem(
     setEditing(false);
   }, [item, save]);
 
+  // Fungsi untuk membatalkan pengeditan item
   const cancelEdit = useCallback(() => {
     if (!input.current) return;
     setEditing(false);
     input.current.value = item.text;
   }, [item]);
 
+  // Fungsi untuk menghapus item
   const doDelete = useCallback(() => {
     setBusy(true);
     save(item, null, item.completed);
     setShowDeleteModal(false);
   }, [item, save]);
 
+  // Fungsi untuk menyimpan status selesai pada item
   const doSaveCompleted = useCallback((completed: boolean) => {
     setBusy(true);
     save(item, item.text, completed);
