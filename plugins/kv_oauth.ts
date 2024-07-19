@@ -4,9 +4,6 @@ import {
     createHelpers,
 } from "@deno/kv-oauth";
 import type { Plugin } from "$fresh/server.ts";
-import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
-
-const _env = await load();
 
 const googleOAuthConfig = createGoogleOAuthConfig({
     redirectUri: `${Deno.env.get("REDIRECT_URI")}/google/callback`,
