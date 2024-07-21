@@ -22,8 +22,11 @@ export const handler: Handlers = {
             return new Response("Profile not found", { status: 404 });
         }
 
-        // Mendapatkan daftar tugas pengguna berdasarkan session ID.
-        const lists = await getUserLists(sessionId);
+        // Gunakan profile.id sebagai pengganti sessionId
+        const userId = profile.id;
+
+        // Mendapatkan daftar tugas pengguna berdasarkan profile.id
+        const lists = await getUserLists(userId);
         // Merender halaman dengan data lists dan profile.
         return ctx.render({ lists, profile });
     },

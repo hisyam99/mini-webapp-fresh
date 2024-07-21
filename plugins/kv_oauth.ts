@@ -66,7 +66,10 @@ async function setUserProfile(sessionId: string, profile: string) {
 export async function getUserProfileFromSession(sessionId: string) {
     const kv = await Deno.openKv();
     const result = await kv.get(["userProfiles", sessionId]);
-    return result.value as { name?: string } | null;
+    return result.value as {
+        id: string;
+        name?: string;
+    } | null;
 }
 
 // Plugin default dengan berbagai rute yang tersedia

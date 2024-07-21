@@ -11,7 +11,6 @@ import { TodoList } from "../../shared/api.ts";
 import { getSessionId } from "@deno/kv-oauth";
 import { getUserProfileFromSession } from "../../plugins/kv_oauth.ts";
 
-// Handler untuk menangani permintaan GET dan POST ke halaman.
 export const handler: Handlers = {
   GET: async (req, ctx) => {
     // Mendapatkan session ID dari permintaan.
@@ -28,7 +27,8 @@ export const handler: Handlers = {
       return new Response("Profile not found", { status: 404 });
     }
 
-    // Mendapatkan listId dari parameter konteks.
+    // Gunakan profile.id sebagai pengganti sessionId
+    const userId = profile.id;
     const listId = ctx.params.listId;
     const url = new URL(req.url);
 
@@ -44,7 +44,7 @@ export const handler: Handlers = {
         try {
           const mutations = JSON.parse(event.data);
           await writeItems(listId, mutations);
-          const updatedData = await loadList(listId, "strong", sessionId);
+          const updatedData = await loadList(listId, "strong", userId);
           if (updatedData) {
             socket.send(JSON.stringify(updatedData));
           }
@@ -63,7 +63,7 @@ export const handler: Handlers = {
       (async () => {
         for await (const _change of watcher) {
           try {
-            const updatedData = await loadList(listId, "strong", sessionId);
+            const updatedData = await loadList(listId, "strong", userId);
             if (updatedData) {
               socket.send(JSON.stringify(updatedData));
             }
@@ -81,7 +81,7 @@ export const handler: Handlers = {
     const data = await loadList(
       listId,
       url.searchParams.get("consistency") === "strong" ? "strong" : "eventual",
-      sessionId,
+      userId,
     );
     const endTime = Date.now();
 
@@ -105,10 +105,16 @@ export const handler: Handlers = {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    const profile = await getUserProfileFromSession(sessionId);
+    if (!profile) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const userId = profile.id;
     const listId = ctx.params.listId;
     const formData = await req.formData();
     if (formData.get("action") === "togglePrivacy") {
-      const success = await toggleListPrivacy(listId, sessionId);
+      const success = await toggleListPrivacy(listId, userId);
       if (success) {
         return Response.redirect(req.url, 302);
       } else {

@@ -23,8 +23,11 @@ export const handler = async (
     return new Response("Profile not found", { status: 404 });
   }
 
+  // Gunakan profile.id sebagai pengganti sessionId
+  const userId = profile.id;
+
   // Membuat daftar tugas baru dan mendapatkan ID-nya.
-  const listId = await createList(sessionId);
+  const listId = await createList(userId); // Pass userId instead of sessionId
   const url = new URL(req.url);
 
   // Mengarahkan pengguna ke halaman dashboard dengan ID daftar tugas baru.
