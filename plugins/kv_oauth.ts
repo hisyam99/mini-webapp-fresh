@@ -14,7 +14,6 @@ Deno.env.set("GOOGLE_CLIENT_ID", env["GOOGLE_CLIENT_ID"]);
 Deno.env.set("GOOGLE_CLIENT_SECRET", env["GOOGLE_CLIENT_SECRET"]);
 Deno.env.set("FACEBOOK_CLIENT_ID", env["FACEBOOK_CLIENT_ID"]);
 Deno.env.set("FACEBOOK_CLIENT_SECRET", env["FACEBOOK_CLIENT_SECRET"]);
-Deno.env.set("REDIRECT_URI", env["REDIRECT_URI"]);
 
 // Konfigurasi OAuth untuk Google
 const googleOAuthConfig = createGoogleOAuthConfig({
