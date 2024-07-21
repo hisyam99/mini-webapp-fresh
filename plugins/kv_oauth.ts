@@ -4,21 +4,36 @@ import {
     createHelpers,
 } from "@deno/kv-oauth";
 import type { Plugin } from "$fresh/server.ts";
+import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
+// Memuat Environment Variable dari file .env
+const env = await load();
+
+// Mengatur Environment Variable untuk kredensial OAuth
+Deno.env.set("GOOGLE_CLIENT_ID", env["GOOGLE_CLIENT_ID"]);
+Deno.env.set("GOOGLE_CLIENT_SECRET", env["GOOGLE_CLIENT_SECRET"]);
+Deno.env.set("FACEBOOK_CLIENT_ID", env["FACEBOOK_CLIENT_ID"]);
+Deno.env.set("FACEBOOK_CLIENT_SECRET", env["FACEBOOK_CLIENT_SECRET"]);
+Deno.env.set("REDIRECT_URI", env["REDIRECT_URI"]);
+
+// Konfigurasi OAuth untuk Google
 const googleOAuthConfig = createGoogleOAuthConfig({
     redirectUri: `${Deno.env.get("REDIRECT_URI")}/google/callback`,
     scope:
         "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
 });
 
+// Konfigurasi OAuth untuk Facebook
 const facebookOAuthConfig = createFacebookOAuthConfig({
     redirectUri: `${Deno.env.get("REDIRECT_URI")}/facebook/callback`,
     scope: "public_profile,email",
 });
 
+// Membuat helper OAuth untuk Google dan Facebook
 const googleHelpers = createHelpers(googleOAuthConfig);
 const facebookHelpers = createHelpers(facebookOAuthConfig);
 
+// Fungsi untuk mengambil profil pengguna dari provider OAuth
 async function getUserProfile(
     provider: "google" | "facebook",
     accessToken: string,
@@ -41,17 +56,20 @@ async function getUserProfile(
     return await response.json();
 }
 
+// Fungsi untuk menyimpan profil pengguna ke dalam KV
 async function setUserProfile(sessionId: string, profile: string) {
     const kv = await Deno.openKv();
     await kv.set(["userProfiles", sessionId], profile);
 }
 
+// Fungsi untuk mengambil profil pengguna dari sesi
 export async function getUserProfileFromSession(sessionId: string) {
     const kv = await Deno.openKv();
     const result = await kv.get(["userProfiles", sessionId]);
     return result.value as { name?: string } | null;
 }
 
+// Plugin default dengan berbagai rute yang tersedia
 export default {
     name: "kv-oauth",
     routes: [

@@ -15,7 +15,15 @@ export default function Footer() {
                 </svg>
                 <p>hisyam99</p>
             </aside>
-            <nav className="grid-flow-col gap-4 md:place-self-center md:justify-self-end">
+            <nav className="grid-flow-col gap-4 md:place-self-center md:justify-self-end items-center">
+                <a href="https://fresh.deno.dev">
+                    <img
+                        width="197"
+                        height="37"
+                        src="https://fresh.deno.dev/fresh-badge.svg"
+                        alt="Made with Fresh"
+                    />
+                </a>
                 <a href="https://github.com/hisyam99" aria-label="Github">
                     <svg
                         width="24"
