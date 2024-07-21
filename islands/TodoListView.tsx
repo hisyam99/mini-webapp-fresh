@@ -8,7 +8,11 @@ interface LocalMutation {
 
 // Komponen utama untuk menampilkan daftar tugas
 export default function TodoListView(
-  { initialData, latency }: { initialData: TodoList; latency: number },
+  { initialData, latency, sessionId }: {
+    initialData: TodoList;
+    latency: number;
+    sessionId: string;
+  },
 ) {
   const [data, setData] = useState(initialData); // State untuk data daftar tugas
   const [dirty, setDirty] = useState(false); // State untuk status sinkronisasi data
@@ -19,6 +23,15 @@ export default function TodoListView(
   const wsRef = useRef<WebSocket | null>(null); // Referensi ke WebSocket
   const [copyStatus, setCopyStatus] = useState("Copy"); // State untuk status tombol salin
   const [currentUrl, setCurrentUrl] = useState(""); // State untuk URL saat ini
+  const _isOwner = initialData.ownerId === sessionId;
+
+  // Tambahkan fungsi untuk toggle privacy
+  const togglePrivacy = useCallback(() => {
+    fetch(window.location.href, {
+      method: "POST",
+      body: new URLSearchParams({ action: "togglePrivacy" }),
+    }).then(() => window.location.reload());
+  }, []);
 
   // Mengatur URL saat ini ketika komponen di-mount
   useEffect(() => {
@@ -101,6 +114,11 @@ export default function TodoListView(
   return (
     <div className="container mx-auto p-4 max-w-xl">
       <div className="card bg-base-100 shadow-xl">
+        <div className="mb-4">
+          <a href="/dashboard/history" className="btn btn-accent">
+            Tampilkan Riwayat Link Daftar Tugas Anda
+          </a>
+        </div>
         <div className="card-body">
           <div className="flex items-center gap-2">
             <h1 className="card-title">Daftar Tugas</h1>
@@ -122,10 +140,20 @@ export default function TodoListView(
                 {copyStatus}
               </button>
             </div>
+            <div className="form-control mt-2">
+              <label className="label cursor-pointer">
+                <span className="label-text">
+                  Jadikan link ini publik agar dapat diakses oleh siapapun.
+                </span>
+                <input
+                  type="checkbox"
+                  className="toggle"
+                  checked={initialData.isPublic}
+                  onChange={togglePrivacy}
+                />
+              </label>
+            </div>
           </div>
-          <p className="text-sm opacity-50">
-            Bagikan link ini untuk berkolaborasi dengan orang lain.
-          </p>
           <div className="form-control">
             <div className="input-group">
               <input
